@@ -1,0 +1,31 @@
+version: '3'
+services:
+  servicio1:
+    build:
+      context: ./servicio1  # Apunta a la carpeta servicio1
+    command: python app.py
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]  # Revisa si el servicio está disponible
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+
+  servicio2:
+    build:
+      context: ./servicio2  # Apunta a la carpeta servicio2
+    command: bash -c "./wait-for-it.sh servicio1:5000 -- python app.py"  # Espera hasta que servicio1 esté listo
+    depends_on:
+      - servicio1
+    ports:
+      - "5001:5001"  # Exponer el puerto 5001
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
